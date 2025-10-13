@@ -31,7 +31,7 @@
 // *********************** 64 bit version ***********************
 
 Int64 Anchor_dist;							// distance between anchors 
-Int64 Shallow_limit;						// limit for shallow_sort 
+//Int64 Shallow_limit;						// limit for shallow_sort 
 
 int _ds_Verbose;                // how verbose it the algorithm?
 int _ds_Word_size;              // # of bytes in word in mkqs (1, 2, 4, 8??)

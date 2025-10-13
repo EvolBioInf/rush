@@ -20,7 +20,7 @@ extern Int64 Mk_qs_thresh;         // 64 bit version
 
 // ----- "local" global variables
 //Int32 Shallow_limit;               // Max depth for shallow sorting; 
-Int64 Shallow_limit;               // Max depth for shallow sorting; 
+//Int64 Shallow_limit;               // Max depth for shallow sorting; 
 UChar *Shallow_text_limit;         // Text + Shallow_limit
 
 #define UNROLL 1                   // if !=0 partially unroll shallow_mkq

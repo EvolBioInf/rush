@@ -15,7 +15,7 @@
 //extern int Anchor_dist;
 //extern int Shallow_limit;
 extern Int64 Anchor_dist;
-extern Int64 Shallow_limit;
+//extern Int64 Shallow_limit;
 extern int _ds_Verbose; 
 
 // ----- macros and costants --------------

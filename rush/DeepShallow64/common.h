@@ -37,6 +37,10 @@
 
 #endif /* UCHAR */
 
+#ifndef SHALLOWLIMIT
+#define SHALLOWLIMIT
+        Int64 Shallow_limit;
+#endif
 	
 typedef int				Int32;
 typedef unsigned int	UInt32;
