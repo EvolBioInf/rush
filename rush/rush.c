@@ -11,7 +11,7 @@
 #include <math.h>
 #include <gsl/gsl_sf_gamma.h>
 #include <gsl/gsl_errno.h>
-#include "DeepShallow64/common.h"
+#include "deepShallow64/common.h"
 #include "interface.h"
 #include "eprintf.h"
 #include "sequenceData.h"

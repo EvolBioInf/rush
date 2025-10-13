@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_sf_gamma.h>
-#include "DeepShallow64/common.h"
+#include "deepShallow64/common.h"
 #include "eprintf.h"
 
 double *pshulen(double theta, int max, int sbjctLen, double *res);

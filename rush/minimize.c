@@ -9,7 +9,7 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_min.h>
-#include "DeepShallow64/common.h"
+#include "deepShallow64/common.h"
 #include "minimize.h"
 #include "eprintf.h"
 #include "prob.h"

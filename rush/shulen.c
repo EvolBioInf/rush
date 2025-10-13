@@ -9,10 +9,10 @@
 #include "sequenceData.h"
 #include "eprintf.h"
 #include "interface.h"
-#include "DeepShallow64/common.h"
-#include "DeepShallow64/ds_ssort.h"
-#include "DeepShallow64/bwt_aux.h"
-#include "DeepShallow64/lcp_aux.h"
+#include "deepShallow64/common.h"
+#include "deepShallow64/ds_ssort.h"
+#include "deepShallow64/bwt_aux.h"
+#include "deepShallow64/lcp_aux.h"
 #include "shulen.h"
 
 Int64 *getSuffixArray(Sequence *seq){
