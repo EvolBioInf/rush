@@ -25,14 +25,12 @@
 
 /* ------ external global variables ------- */
 extern UChar  *Text;                   // input string+ overshoot
-//extern Int32  Text_size;               // size of input string
-extern Int64  Text_size;               // size of input string
+extern Int32  Text_size;               // size of input string
 extern UChar  *Upper_text_limit;       // Text+Text_size
 
 /* ------- node of blind trie -------- */ 
 typedef struct nodex {
-  //Int32 skip;
-  Int64 skip; //?? 64 bit version
+  Int32 skip;
   UChar key;  
   struct nodex  *down;      // first child
   struct nodex *right;      // next brother
@@ -44,45 +42,33 @@ typedef struct nodex {
 #define FREESIZE 5000
 void *freearr[FREESIZE];
 static node *bufn;
-static int bufn_num=0, free_num=0; // ?? ok for 64 bit version
-//static Int32 *Aux, Aux_written;
-static Int64 *Aux, Aux_written;
+static int bufn_num=0, free_num=0;
+static Int32 *Aux, Aux_written;
 node **Stack;
-//int Stack_size;
-Int64 Stack_size; // ?? 64 bit version, though 32 bit int might be enough
+int Stack_size;
 
 // --- static prototypes (gcc4 requires they are not inside functions) 
 static int neg_integer_cmp(const void *, const void *);
 static node *find_companion(node *head, UChar *s);
-//static void insert_suffix(node *h, Int32 suf, int n, UChar mmchar);
-static void insert_suffix(node *h, Int64 suf, Int64 n, UChar mmchar); //64 bit version
+static void insert_suffix(node *h, Int32 suf, int n, UChar mmchar);
 static void traverse_trie(node *h);
-//static Int32 compare_suffixes(Int32 suf1, Int32 suf2, Int32 depth);
-static Int64 compare_suffixes(Int64 suf1, Int64 suf2, Int64 depth); //64 bit version
+static Int32 compare_suffixes(Int32 suf1, Int32 suf2, Int32 depth);
 static void free_node_mem();
 static node *get_leaf(node *head);
 
-// __inline__ node *new_node__blind_ssort(void); // redeclared as static :
-#if UNIX
-	static __inline__ node *new_node__blind_ssort(void); 
-#elif WIN
-	static __inline node *new_node__blind_ssort(void); 
-#endif
+
 
 /* ****************************************************************
    routine for deep-sorting the suffixes a[0] ... a[n-1]
    knowing that they have a common prefix of length "depth"
   **************************************************************** */   
-//void blind_ssort(Int32 *a, Int32 n, Int32 depth)
-void blind_ssort(Int64 *a, Int64 n, Int64 depth) // 64 bit version
+void blind_ssort(Int32 *a, Int32 n, Int32 depth)
 {
-  //Int32 i,j,aj,lcp;
-  Int64 i,j,aj,lcp; // 64 bit version
+  Int32 i,j,aj,lcp;
   node nh, *root, *h;
 
   // ---- sort suffixes in order of increasing length
-  //qsort(a,n, sizeof(Int32), neg_integer_cmp);
-  qsort(a,n, sizeof(Int64), neg_integer_cmp); // 64 bit version
+  qsort(a,n, sizeof(Int32), neg_integer_cmp);
 
   // --- skip suffixes which have already reached the end-of-text
   for(j=0;j<n;j++)
@@ -98,9 +84,7 @@ void blind_ssort(Int64 *a, Int64 n, Int64 depth) // 64 bit version
   }
 
   // ------- init root with the first unsorted suffix
-  nh.skip = -1LL;   
-  nh.right = NULL; 
-  nh.down = (void *) a[j]; // warning ?? 64 bit - check for pointer conversion: cast to pointer from int of different size
+  nh.skip = -1;   nh.right = NULL; nh.down = (node *) ((long)a[j]); 
   root = &nh;
 
   // ------- insert suffixes a[j+1] ... a[n-1]
@@ -108,8 +92,7 @@ void blind_ssort(Int64 *a, Int64 n, Int64 depth) // 64 bit version
     h=find_companion(root, Text+a[i]);
     assert(h->skip==-1);
     assert(Stack_size<=i-j);
-    //aj=(Int32) h->down;
-    aj=(Int64) h->down; // 64 bit version // warning ?? check for pointer conversion: cast to pointer from int of different size
+    aj=(long) h->down;
     assert(aj>a[i]);
     lcp = compare_suffixes(aj,a[i],depth);
     insert_suffix(root, a[i], lcp, Text[aj+lcp]);
@@ -132,8 +115,7 @@ static node *find_companion(node *head, UChar *s)
 {
   UChar c;
   node *p;
-  //int t;
-  Int64 t; // 64 bit version
+  int t;
 
   Stack_size = 0;                // init stack
   while(head->skip >= 0) {
@@ -172,16 +154,8 @@ static node *get_leaf(node *head)
 
 
 
-// __inline__ node *new_node__blind_ssort(void)
-// // the "static" was added to avoid the warning 
-// "'bufn_num' is static but used in inline function 'new_node__blind_ssort' which is not static"
-// and since this function is only used in this file
-#if UNIX
-	static __inline__ node *new_node__blind_ssort(void)
-#elif WIN
-	static __inline node *new_node__blind_ssort(void)
-#endif
-{
+//__inline__ node *new_node__blind_ssort(void)
+node *new_node__blind_ssort(void){
   if(bufn_num-- == 0) {
     bufn = (node *) malloc(BUFSIZE * sizeof(node));
     if(bufn==NULL) {
@@ -200,12 +174,10 @@ static node *get_leaf(node *head)
    we know that the trie already contains a string
    which share the first n chars with suf
    ***************************************************** */
-//static void insert_suffix(node *h, Int32 suf, int n, UChar mmchar)
-static void insert_suffix(node *h, Int64 suf, Int64 n, UChar mmchar) // 64 bit version
+static void insert_suffix(node *h, Int32 suf, int n, UChar mmchar)
 {
-   //__inline__ node *new_node__blind_ssort(void);// afore the definitions
-  //Int32 t;
-  Int64 t; // 64 bit version
+  /*   __inline__ node *new_node__blind_ssort(void);*/
+  Int32 t;
   UChar c, *s;
   node *p, **pp;
 
@@ -263,7 +235,7 @@ static void insert_suffix(node *h, Int64 suf, Int64 n, UChar mmchar) // 64 bit v
   p->skip = -1;
   p->key = c; 
   p->right = *pp; *pp = p;
-  p->down = (void *) suf;
+  p->down = (node *) ((long)suf);
   return;
 }
 
@@ -277,8 +249,7 @@ static void traverse_trie(node *h)
   node *p, *nextp;
 
   if(h->skip<0)
-    //Aux[Aux_written++] = (Int32) h->down;
-    Aux[Aux_written++] = (Int64) h->down;
+    Aux[Aux_written++] = (long) h->down;
   else {
     p = h->down;
     assert(p!=NULL);
@@ -314,14 +285,9 @@ static void traverse_trie(node *h)
    *********************************************************************** */ 
 //static __inline__
 //Int32 get_lcp_unrolled(UChar *b1, UChar *b2, Int32 cmp_limit)
-#if UNIX
-static __inline__ Int64 get_lcp_unrolled(UChar *b1, UChar *b2, Int64 cmp_limit) { // 64 bit version
-#elif WIN
-static __inline Int64 get_lcp_unrolled(UChar *b1, UChar *b2, Int64 cmp_limit) { // 64 bit version
-#endif 
-
-  //Int32 cmp2do; 
-  Int64 cmp2do; // 64 bit version ?? 32 bit int might be ok?
+static Int32 get_lcp_unrolled(UChar *b1, UChar *b2, Int32 cmp_limit)
+{
+  Int32 cmp2do; 
   UChar c1, c2;
   assert(b1 != b2);
 
@@ -430,12 +396,10 @@ static __inline Int64 get_lcp_unrolled(UChar *b1, UChar *b2, Int64 cmp_limit) { 
    in this case the function returns n=length(suf1)-1. So in this case 
    suf1[n]==suf2[n] (and suf1[n+1] does not exists). 
    ************************************************************************ */
-//static Int32 compare_suffixes(Int32 suf1, Int32 suf2, Int32 depth)
-static Int64 compare_suffixes(Int64 suf1, Int64 suf2, Int64 depth) // 64 bit version
+static Int32 compare_suffixes(Int32 suf1, Int32 suf2, Int32 depth)
 {
-  //__inline__ Int32 get_lcp_unrolled(UChar *, UChar *, Int32);  
-  //__inline__ Int64 get_lcp_unrolled(UChar *, UChar *, Int64);  // static def.
-  Int64 limit;
+  /*  __inline__ Int32 get_lcp_unrolled(UChar *, UChar *, Int32);  */
+  int limit;
   UChar *s1, *s2;
 
   assert(suf1>suf2);
@@ -454,15 +418,7 @@ static Int64 compare_suffixes(Int64 suf1, Int64 suf2, Int64 depth) // 64 bit ver
    ****************************************************************** */
 static int neg_integer_cmp(const void *a, const void *b)
 {
-  //return *((Int64 *) b) -  *((Int64 *) a); 
-	int retValue = 0;
-	if (*((Int64 *) b) >  *((Int64 *)a)) {
-		retValue = 1;
-	}
-	else if (*((Int64 *) b) <  *((Int64 *) a)) {
-		retValue = -1;
-	}
-	return retValue; 
+  return *((Int32 *) b) -  *((Int32 *) a); 
 }
 
 

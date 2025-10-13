@@ -21,8 +21,6 @@
 #include "lcpTree.h"
 #include "intervalStack.h"
 
-Args *args;
-
 Int64 *suffixArray;
 Int64 queryStart, queryEnd;
 Int64 numInterval = 0;
@@ -32,17 +30,16 @@ Int64 maxDepth;
 /* getLcpTreeShulens: compute shulens from lcp tree traversal.
  * This is the only entry point to the functions in this file.
  */
-Int64 *getLcpTreeShulens(Args *a, Sequence *seq){
+Int64 *getLcpTreeShulens(Args *args, Sequence *seq){
 
   Int64 *sa, *lcpTab, *sl;
   Int64 min, i, j;
-  args = a;
 
-  maxDepth = a->D;
+  maxDepth = args->D;
 
   sa = getSuffixArray(seq);
   lcpTab = getLcp(seq, sa);
-  sl = traverseLcpTree(lcpTab, sa, seq);
+  sl = traverseLcpTree(args, lcpTab, sa, seq);
 
   /* filter out shulens that cross string borders */
   min = 0;
@@ -66,7 +63,7 @@ Int64 *getLcpTreeShulens(Args *a, Sequence *seq){
 }
 
 /* traverseLcpTree: bottom-up traversal of lcp-interval tree */
-Int64 *traverseLcpTree(Int64 *lcpTab, Int64 *sa, Sequence *seq){
+Int64 *traverseLcpTree(Args *args, Int64 *lcpTab, Int64 *sa, Sequence *seq){
 
   Interval *lastInterval, *interval;
   Int64 i, j, lb, rightEnd, lastIsNull, *shulens;
@@ -100,7 +97,7 @@ Int64 *traverseLcpTree(Int64 *lcpTab, Int64 *sa, Sequence *seq){
 	push(reserveStack,lastInterval->children[j]);
       }
       lastIsNull = 0;
-      process(lastInterval, shulens);
+      process(args, lastInterval, shulens);
       lb = lastInterval->lb;
       if(lcpTab[i] <= treeStack->top->lcp){
 	addChild(treeStack->top, lastInterval);
@@ -126,7 +123,7 @@ Int64 *traverseLcpTree(Int64 *lcpTab, Int64 *sa, Sequence *seq){
   }
   while(!isEmpty(treeStack)){
     interval = pop(treeStack);
-    process(interval, shulens);
+    process(args, interval, shulens);
     for(i=0;i<interval->numChildren;i++)
       freeInterval(interval->children[i]);
     freeInterval(interval);
@@ -191,10 +188,9 @@ void addChild(Interval *parent, Interval *child){
  * 1) it labels an interval according to whether it has suffix tree leaves from query (isQuery)
  *    or from subject (isSubject) or both (isQuery && isSubject).
  * 2) if(isQuery && isSubject) it determines the corresponding query shustring lengths (if any)
- * Some rough notes on this procedure can b
-e found in the black notebook, p. 79, August 8, 2007.
+ * Some rough notes on this procedure can be found in the black notebook, p. 79, August 8, 2007.
  */
-void process(Interval *interval, Int64 *shulens){
+void process(Args *args, Interval *interval, Int64 *shulens){
   Int64 i, len;
   Int64 ind;
 

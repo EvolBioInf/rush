@@ -16,7 +16,7 @@
 #include "eprintf.h"
 #include "sequenceData.h"
 #include "lcpTree.h"
-#include "minimize.h"
+/* #include "minimize.h" */
 #include "rush.h"
 #include "prob.h"
 

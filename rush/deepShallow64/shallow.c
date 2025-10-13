@@ -1,7 +1,7 @@
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
    shallow.c  
    This is the multikey quicksort from bentley-sedgewick modified 
-   so that it stops recursion when depth reaches  Shallow_limit 
+   so that it stops recursion when depth reaches  Shallow_limit_l 
    (that is when two or more suffixes have Shallow_limit chars in common).
    >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 #include <stdlib.h>
@@ -11,43 +11,33 @@
 
 // ----- external variables ----------
 extern UChar *Text;                // start of input string
-extern UChar *Upper_text_limit;    // Text + Text_size
+extern UChar *Upper_text_limit;    // Text+Text_size
 extern Int32 _ds_Word_size;        // # of bytes in a word in mkq
-//extern Int32 Mk_qs_thresh;         // recursion limit for mk quicksort: 
+extern Int32 Mk_qs_thresh;         // recursion limit for mk quicksort: 
                                    // groups smaller than this are sorted 
                                    // using insertion sort
-extern Int64 Mk_qs_thresh;         // 64 bit version
 
 // ----- "local" global variables
-//Int32 Shallow_limit;               // Max depth for shallow sorting; 
-//Int64 Shallow_limit;               // Max depth for shallow sorting; 
-UChar *Shallow_text_limit;         // Text + Shallow_limit
+Int32 Shallow_limit_l;               // Max depth for shallow sorting
+UChar *Shallow_text_limit;         // Text+Shallow_limit
 
 #define UNROLL 1                   // if !=0 partially unroll shallow_mkq
 
 // ----- some prototypes -------------
-// void helped_sort(Int32 *a, Int32 n, Int32 depth); // void helped_sort(Int32 *a, int n, int depth)
-void helped_sort(Int64 *a, Int64 n, Int64 depth); //64 bit version; maybe depth can be int32??
-
-//static void shallow_inssort_lcp(Int32 *a, Int32 n, UChar *text_depth);
-static void shallow_inssort_lcp(Int64 *a, Int64 n, UChar *text_depth); //64 bit version; 
+void helped_sort(Int32 *a, Int32 n, Int32 depth);
+static void shallow_inssort_lcp(Int32 *a, Int32 n, UChar *text_depth);
 
 // --- static prototypes (gcc4 requires they are not inside functions) 
-//static void shallow_mkq(Int32 *a, int n, UChar *text_depth);
-//static void shallow_mkq16(Int32 *a, int n, UChar *text_depth);
-//static void shallow_mkq32(Int32 *a, int n, UChar *text_depth);
+static void shallow_mkq(Int32 *a, int n, UChar *text_depth);
+static void shallow_mkq16(Int32 *a, int n, UChar *text_depth);
+static void shallow_mkq32(Int32 *a, int n, UChar *text_depth);
 
-static void shallow_mkq(Int64 *a, Int64 n, UChar *text_depth);    //64 bit version 
-static void shallow_mkq16(Int64 *a, Int64 n, UChar *text_depth);
-static void shallow_mkq32(Int64 *a, Int64 n, UChar *text_depth);
-
-static void shallow_mkq64(Int64 *a, Int64 n, UChar *text_depth); // new! - added for the 64 bit version
 
 // ***** entry point for shallow sort routines *****
-void shallow_sort(Int64 *a, Int64 n, Int64 shallow_limit) 
+void shallow_sort(Int32 *a, int n, int shallow_limit) 
 { 
   // init global variables
-  Shallow_limit = shallow_limit;        
+  Shallow_limit_l = shallow_limit;        
   Shallow_text_limit = Text + shallow_limit;
   // call multikey quicksort
   // skip 2 chars since suffixes come from the same bucket 
@@ -55,8 +45,6 @@ void shallow_sort(Int64 *a, Int64 n, Int64 shallow_limit)
   case(1): shallow_mkq(a, n, Text+2); break;
   case(2): shallow_mkq16(a, n, Text+2); break;
   case(4): shallow_mkq32(a, n, Text+2); break;
-  case(8): shallow_mkq64(a, n, Text+2); break; // since now it's the 64 bit version
-
   default:
     fprintf(stderr,
 	    "Invalid word size for mkqs (%d) (shallow_sort)\n",_ds_Word_size);
@@ -69,15 +57,9 @@ void shallow_sort(Int64 *a, Int64 n, Int64 shallow_limit)
    auxiliary procedures and macro for bentley-sedgewick's
    multikey quicksort
    ======================================================= */
-//#if UNIX
-//__inline__ 
-//#elif WIN
-//__inline 
-//#endif
-void vecswap2(Int64 *a, Int64 *b, Int64 n) // 64 bit version
-{ 
-	while (n-- > 0) {
-        Int64 t = *a;
+void vecswap2(Int32 *a, Int32 *b, int n)
+{   while (n-- > 0) {
+        Int32 t = *a;
         *a++ = *b;
         *b++ = t;
     }
@@ -86,13 +68,8 @@ void vecswap2(Int64 *a, Int64 *b, Int64 n) // 64 bit version
 #define swap2(a, b) { t = *(a); *(a) = *(b); *(b) = t; }
 #define ptr2char(i) (*(*(i) + text_depth))
 
-#if UNIX
-__inline__ Int64 *med3func(Int64 *a, Int64 *b, Int64 *c, UChar *text_depth) // 64 bit version
-#elif WIN
-__inline Int64 *med3func(Int64 *a, Int64 *b, Int64 *c, UChar *text_depth) // 64 bit version
-#endif
-{   //int va, vb, vc;
-		Int64 va, vb, vc;
+Int32 *med3func(Int32 *a, Int32 *b, Int32 *c, UChar *text_depth)
+{   int va, vb, vc;
     if ((va=ptr2char(a)) == (vb=ptr2char(b)))
         return a;
     if ((vc=ptr2char(c)) == va || vc == vb)
@@ -108,17 +85,13 @@ __inline Int64 *med3func(Int64 *a, Int64 *b, Int64 *c, UChar *text_depth) // 64 
    recursive multikey quicksort from Bentley-Sedgewick
    stops when text_depth reaches Shallow_depth_limit 
    that is when we have found that the current set of strings
-   have Shallow_limit chars in common
+   have Shallow_limit_l chars in common
    ******************************************************** */
-//static void shallow_mkq(Int32 *a, int n, UChar *text_depth)
-static void shallow_mkq(Int64 *a, Int64 n, UChar *text_depth) // 64 bit version
+static void shallow_mkq(Int32 *a, int n, UChar *text_depth)
 {
-  //__inline__ void vecswap2(Int64 *a, Int64 *b, Int64 n);
-  //int d, r, partval;
-  //Int32 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t;
-  Int64 d, r, partval; // 64 bit version
-  Int64 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t; 
-  
+  /*  __inline__ void vecswap2(Int32 *a, Int32 *b, int n);*/
+  int d, r, partval;
+  Int32 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t;
   UChar *next_depth;
 
   // ---- On small arrays use insertions sort
@@ -130,26 +103,26 @@ static void shallow_mkq(Int64 *a, Int64 n, UChar *text_depth) // 64 bit version
   // ----------- choose pivot --------------
  repeat:
   pl = a;
-  pm = a + (n / 2);
-  pn = a + (n - 1);
+  pm = a + (n/2);
+  pn = a + (n-1);
   if (n > 30) { // On big arrays, pseudomedian of 9
-    d = (n / 8);
-    pl = med3(pl, pl + d, pl + 2 * d);
-    pm = med3(pm - d, pm, pm + d);
-    pn = med3(pn - 2 * d, pn - d, pn);
+    d = (n/8);
+    pl = med3(pl, pl+d, pl+2*d);
+    pm = med3(pm-d, pm, pm+d);
+    pn = med3(pn-2*d, pn-d, pn);
   }
   pm = med3(pl, pm, pn);
   swap2(a, pm);
   partval = ptr2char(a);
   pa = pb = a + 1;
-  pc = pd = a + n - 1;
+  pc = pd = a + n-1;
   // -------- partition -----------------
   for (;;) {
-    while (pb <= pc && (r = ptr2char(pb) - partval) <= 0) {
+    while (pb <= pc && (r = ptr2char(pb)-partval) <= 0) {
       if (r == 0) { swap2(pa, pb); pa++; }
       pb++;
     }
-    while (pb <= pc && (r = ptr2char(pc) - partval) >= 0) {
+    while (pb <= pc && (r = ptr2char(pc)-partval) >= 0) {
       if (r == 0) { swap2(pc, pd); pd--; }
       pc--;
     }
@@ -160,7 +133,7 @@ static void shallow_mkq(Int64 *a, Int64 n, UChar *text_depth) // 64 bit version
   }
 
 #if UNROLL
-  if(pa > pd) {
+  if(pa>pd) {
     // all values were equal to partval: make it simpler
     if( (next_depth = text_depth+1) >= Shallow_text_limit) {
       helped_sort(a, n, next_depth-Text);
@@ -174,25 +147,25 @@ static void shallow_mkq(Int64 *a, Int64 n, UChar *text_depth) // 64 bit version
 #endif
   // partition a[] into the values smaller, equal, and larger that partval
   pn = a + n;
-  r = min(pa - a, pb - pa);    vecswap2(a,  pb - r, r);
-  r = min(pd - pc, pn - pd - 1); vecswap2(pb, pn - r, r);
+  r = min(pa-a, pb-pa);    vecswap2(a,  pb-r, r);
+  r = min(pd-pc, pn-pd-1); vecswap2(pb, pn-r, r);
   // --- sort smaller strings -------
-  if ((r = pb - pa) > 1)
+  if ((r = pb-pa) > 1)
     shallow_mkq(a, r, text_depth);
   // --- sort strings starting with partval -----
-  if( (next_depth = text_depth + 1) < Shallow_text_limit)
-    shallow_mkq(a + r, pa - pd + n - 1, next_depth);
+  if( (next_depth = text_depth+1) < Shallow_text_limit)
+    shallow_mkq(a + r, pa-pd+n-1, next_depth);
   else 
-    helped_sort(a + r, pa - pd + n - 1, next_depth-Text);
-  if ((r = pd - pc) > 1) /* ????????????? */
-    shallow_mkq(a + n - r, r, text_depth);
+    helped_sort(a + r, pa-pd+n-1, next_depth-Text);
+  if ((r = pd-pc) > 1)
+    shallow_mkq(a + n-r, r, text_depth);
 }
 
 
 
 /* ************** 16 *************** */
 #define ptr2char16(i) (getword16(*(i) + text_depth))
-#define getword16(s) ((unsigned)((*(s) << 8) | *((s) + 1)))
+#define getword16(s) ((unsigned)((*(s) << 8) | *((s)+1)))
 
 #if 0
 Int32 *med3func16(Int32 *a, Int32 *b, Int32 *c, UChar *text_depth)
@@ -208,17 +181,12 @@ Int32 *med3func16(Int32 *a, Int32 *b, Int32 *c, UChar *text_depth)
 #define med3_16(a, b, c) med3func16(a, b, c, text_depth)
 #endif
 
-//static void shallow_mkq16(Int32 *a, int n, UChar *text_depth)
-static void shallow_mkq16(Int64 *a, Int64 n, UChar *text_depth) // 64 bit version
+static void shallow_mkq16(Int32 *a, int n, UChar *text_depth)
 {
-  //__inline__ void vecswap2(Int32 *a, Int32 *b, int n);
-  //__inline__ void vecswap2(Int64 *a, Int64 *b, Int64 n); // 64 bit version
-  //int d, r, partval;
-  //Int32 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t;
-  Int64 d, r, partval; // 64 bit version
-  Int64 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t; 
+  /*  __inline__ void vecswap2(Int32 *a, Int32 *b, int n);*/
+  int d, r, partval;
+  Int32 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t;
   UChar *next_depth;
-
 
   // ---- On small arrays use insertions sort
   if (n < Mk_qs_thresh) {
@@ -291,16 +259,11 @@ static void shallow_mkq16(Int64 *a, Int64 n, UChar *text_depth) // 64 bit versio
 #define ptr2char32(i) (getword32(*(i) + text_depth))
 #define getword32(s) ((unsigned)( (*(s) << 24) | ((*((s)+1)) << 16) \
                                   | ((*((s)+2)) << 8) | (*((s)+3)) ))
-//static void shallow_mkq32(Int32 *a, int n, UChar *text_depth)
-static void shallow_mkq32(Int64 *a, Int64 n, UChar *text_depth) //64-bit version
+static void shallow_mkq32(Int32 *a, int n, UChar *text_depth)
 {
-  //__inline__ void vecswap2(Int32 *a, Int32 *b, int n);
-  //UInt32 partval, val;
-  //Int32 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t, d, r;
-  //__inline__ void vecswap2(Int64 *a, Int64 *b, Int64 n); //64-bit version
-  UInt64 partval, val;
-  Int64 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t, d, r;
-
+  /*  __inline__ void vecswap2(Int32 *a, Int32 *b, int n);*/
+  UInt32 partval, val;
+  Int32 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t, d, r;
   UChar *next_depth;
 
   // ---- On small arrays use insertions sort
@@ -369,100 +332,13 @@ static void shallow_mkq32(Int64 *a, Int64 n, UChar *text_depth) //64-bit version
     shallow_mkq32(a + n-r, r, text_depth);
 }
 
-/********************* shallow_mkq64 - a new function added for 64 bit version **************/
-#define ptr2char64(i) ( getword64 (*(i) + text_depth) )
-
-#define getword64(s) ((UInt64)  (   ( ((UInt64)*(s)) << 56)       | ( ((UInt64)(*((s)+1))) << 48) \
-                                  | ( ((UInt64)(*((s)+2))) << 40) | ( ((UInt64)(*((s)+3))) << 32) \
-                                  | ( ((UInt64)(*((s)+4))) << 24) | ( ((UInt64)(*((s)+5))) << 16) \
-                                  | ( ((UInt64)(*((s)+6))) << 8)  | ( ((UInt64)*((s)+7))) ))
-
-
-static void shallow_mkq64(Int64 *a, Int64 n, UChar *text_depth) //64-bit version
-{
-  //__inline__ void vecswap2(Int32 *a, Int32 *b, int n);
-  //UInt32 partval, val;
-  //Int32 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t, d, r;
-  //__inline__ void vecswap2(Int64 *a, Int64 *b, Int64 n); //64-bit version
-  UInt64 partval, val;
-  Int64 *pa, *pb, *pc, *pd, *pl, *pm, *pn, t, d, r;
-
-  UChar *next_depth;
-
-  // ---- On small arrays use insertions sort
-  if (n < Mk_qs_thresh) {
-    shallow_inssort_lcp(a, n, text_depth);
-    return;
-  }
-
-  // ----------- choose pivot --------------
- repeat:
-  pl = a;
-  pm = a + (n/2);
-  pn = a + (n-1);
-  if (n > 30) { // On big arrays, pseudomedian of 9
-    d = (n/8);
-    pl = med3(pl, pl+d, pl+2*d);
-    pm = med3(pm-d, pm, pm+d);
-    pn = med3(pn-2*d, pn-d, pn);
-  }
-  pm = med3(pl, pm, pn);
-  swap2(a, pm);
-  partval = ptr2char64(a);
-  pa = pb = a + 1;
-  pc = pd = a + n-1;
-  // -------- partition -----------------
-  for (;;) {
-    while (pb <= pc &&  (val=ptr2char64(pb)) <=  partval) {
-      if (val == partval) { swap2(pa, pb); pa++; }
-      pb++;
-    }
-    while (pb <= pc && (val=ptr2char64(pc)) >= partval) {
-      if (val == partval) { swap2(pc, pd); pd--; }
-      pc--;
-    }
-    if (pb > pc) break;
-    swap2(pb, pc);
-    pb++;
-    pc--;
-  }
-#if UNROLL
-  if(pa>pd) {
-    // all values were equal to partval: make it simpler
-    if( (next_depth = text_depth+8) >= Shallow_text_limit) {
-      helped_sort(a, n, next_depth-Text);
-      return;
-    }
-    else {
-      text_depth = next_depth;
-      goto repeat;
-    }
-  }
-#endif
-  // partition a[] into the values smaller, equal, and larger that partval
-  pn = a + n;
-  r = min(pa-a, pb-pa);    vecswap2(a,  pb-r, r);
-  r = min(pd-pc, pn-pd-1); vecswap2(pb, pn-r, r);
-  // --- sort smaller strings -------
-  if ((r = pb-pa) > 1)
-    shallow_mkq64(a, r, text_depth);
-  // --- sort strings starting with partval -----
-  if( (next_depth = text_depth+8) < Shallow_text_limit)
-    shallow_mkq64(a + r, pa-pd+n-1, next_depth);
-  else 
-    helped_sort(a + r, pa-pd+n-1, next_depth-Text);
-  if ((r = pd-pc) > 1)
-    shallow_mkq64(a + n-r, r, text_depth);
-}
-
-
 
 
 /* >>>>>>>>>>>>>>>>>>>>>> insertion sort routines >>>>>>>>>>>>>>>>>>>
    This insertion sort routines sorts the suffixes a[0] .. a[n-1]
    which have a common prexif of length text_depth-Text.
-   The comparisons are done going at most at depth Shallow_limit;
-   suffixes which have Shallow_limit chars in common are sorted using 
+   The comparisons are done going at most at depth Shallow_limit_l;
+   suffixes which have Shallow_limit_l chars in common are sorted using 
    helped_sort().
    This inserion_sort keeps trak of the lcp in order to speed up 
    the sorting.
@@ -476,16 +352,8 @@ static void shallow_mkq64(Int64 *a, Int64 n, UChar *text_depth) //64-bit version
    comparisons the algorithm can do before returning 0 (equal strings)
    At exit Cmp_left has been decreased by the # of comparisons done   
    *********************************************************************** */ 
-//static Int32 Cmp_left;
-static Int64 Cmp_left;
-
-//__inline__ 
-//Int32 cmp_unrolled_shallow_lcp(UChar *b1, UChar *b2)
-#if UNIX
-static __inline__ Int64 cmp_unrolled_shallow_lcp(UChar *b1, UChar *b2) // 64 bit version
-#elif WIN
-static __inline Int64 cmp_unrolled_shallow_lcp(UChar *b1, UChar *b2) // 64 bit version
-#endif
+static Int32 Cmp_left;
+Int32 cmp_unrolled_shallow_lcp(UChar *b1, UChar *b2)
 {
 
   UChar c1, c2;
@@ -497,139 +365,83 @@ static __inline Int64 cmp_unrolled_shallow_lcp(UChar *b1, UChar *b2) // 64 bit v
     // 1
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
     // 2
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -=  1; 
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-
-    }
+      Cmp_left -=  1; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
     // 3
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -=  2; 
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -=  2; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
     // 4
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -=  3; 
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -=  3; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
     // 5
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -=  4; 
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -=  4; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
     // 6
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -=  5; 
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -=  5; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
     // 7
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -=  6;
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
-
+      Cmp_left -=  6; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
     // 8
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -=  7; 
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -=  7; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
     // 9
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -=  8; 
-            //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -=  8; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
     // 10
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -=  9;       
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -=  9; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
-    
     // 11
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -= 10; 
-            //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -= 10; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
-    
     // 12
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -= 11; 
-            //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -= 11; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
-    
     // 13
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -= 12; 
-            //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -= 12; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
-    
     // 14
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -= 13; 
-            //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -= 13; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
-    
     // 15
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -= 14; 
-      //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -= 14; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
-    
     // 16
     c1 = *b1; c2 = *b2;
     if (c1 != c2) {
-      Cmp_left -= 15; 
-            //return ((UInt32)c1 - (UInt32)c2); 
-      return ((UInt64)c1 - (UInt64)c2); 
-    }
+      Cmp_left -= 15; return ((UInt32)c1 - (UInt32)c2); }
     b1++; b2++; 
-    
     // if we have done enough comparisons the strings are considered equal
     Cmp_left -= 16;
     if(Cmp_left<=0) return 0;
@@ -639,12 +451,12 @@ static __inline Int64 cmp_unrolled_shallow_lcp(UChar *b1, UChar *b2) // 64 bit v
   return b2 - b1;
 } 
 
-/* *****************************************************************F
+/* *****************************************************************
    this is the insertion sort routine called by multikey-quicksort
    for sorting small groups.
    During insertion sort the comparisons are done calling 
    cmp_unrolled_shallow_lcp() and two strings are equal if the coincides 
-   for Shallow_limit characters.
+   for Shallow_limit_l characters.
    After this first phase we sort groups of "equal_string" using 
    helped_sort(). 
    Usage of lcp. 
@@ -678,23 +490,19 @@ static __inline Int64 cmp_unrolled_shallow_lcp(UChar *b1, UChar *b2) // 64 bit v
    lcpi==lcp[j-3] then we must compare suf(ai) with suf(a[j-3])
    but starting with position lcpi
    ***************************************************************** */
-static Int64 lcp_aux[1+Max_thresh]; //?? long long
-static Int64 *lcp=lcp_aux+1;        //??
-//static void shallow_inssort_lcp(Int32 *a, Int32 n, UChar *text_depth)
-static void shallow_inssort_lcp(Int64 *a, Int64 n, UChar *text_depth) // 64 bit version
+static int lcp_aux[1+Max_thresh];
+static int *lcp=lcp_aux+1; 
+static void shallow_inssort_lcp(Int32 *a, Int32 n, UChar *text_depth)
 {   
-  //__inline__ Int32 cmp_unrolled_shallow_lcp(UChar *, UChar *);
-  //__inline__ Int64 cmp_unrolled_shallow_lcp(UChar *, UChar *);
-  //Int32 i, j, j1, lcp_new, r, ai,lcpi;
-  //Int32 cmp_from_limit;
-  Int64 i, j, j1, lcp_new, r, ai,lcpi;
-  Int64 cmp_from_limit;
+  /*  __inline__ Int32 cmp_unrolled_shallow_lcp(UChar *, UChar *);*/
+  Int32 i, j, j1, lcp_new, r, ai,lcpi;
+  Int32 cmp_from_limit;
   UChar *text_depth_ai;
 
   // --------- initialize ----------------
   lcp_aux[0] = -1;               // set lcp[-1] = -1
   for(i=0;i<n;i++) lcp[i]=0;     // I think this loop is not necessary
-  // cmp_from_limit is # of cmp's to be done to reach Shallow_limit cmp's
+  // cmp_from_limit is # of cmp's to be done to reach Shallow_limit_l cmp's
   cmp_from_limit = Shallow_text_limit-text_depth;
 
   // ----- start insertion sort -----------
@@ -711,18 +519,17 @@ static void shallow_inssort_lcp(Int64 *a, Int64 n, UChar *text_depth) // 64 bit 
       assert(r!=0 || lcp_new>= cmp_from_limit);
 
       if(r<=0) {         // we have a[j-1] <= ai
-				//lcp[j1]=(int)lcp_new; // ai will be written in a[j]; update lcp[j-1], 03/09/2008
-				lcp[j1]=lcp_new; // ai will be written in a[j]; update lcp[j-1]
-				break;
+	lcp[j1]=lcp_new; // ai will be written in a[j]; update lcp[j-1]
+	break;
       }
 
       // --- we have a[j-1]>ai. a[j-1] and maybe other will be moved down 
       // --- use lcp to move down as many elements of a[] as possible
       lcpi = lcp_new;                
       do {
-				a[j] = a[j1];               // move down a[j-1]
-				lcp[j] = lcp[j1];           // move down lcp[j-1]
-				j=j1; j1--;                 // update j and j1=j-1
+	a[j] = a[j1];               // move down a[j-1]
+        lcp[j] = lcp[j1];           // move down lcp[j-1]
+	j=j1; j1--;                 // update j and j1=j-1
       } while(lcpi<lcp[j1]);        // recall that lcp[-1]=-1
 
       if(lcpi>lcp[j1]) break;       // ai will be written in position j
@@ -731,7 +538,7 @@ static void shallow_inssort_lcp(Int64 *a, Int64 n, UChar *text_depth) // 64 bit 
 
     }     // end for(j=i ...
     a[j]=ai;
-    lcp[j]=(Int64)lcpi;
+    lcp[j]=lcpi;
   }       // end for(i=1 ... 
 
   // ----- done with insertion sort. now sort groups of equal strings
@@ -739,7 +546,7 @@ static void shallow_inssort_lcp(Int64 *a, Int64 n, UChar *text_depth) // 64 bit 
     for(j=i; j<n ;j++)
       if(lcp[j]<cmp_from_limit) break;
     if(j-i>0) 
-      helped_sort(a+i,j-i+1,Shallow_limit); 
+      helped_sort(a+i,j-i+1,Shallow_limit_l); 
   }
 }
 

@@ -29,9 +29,9 @@ typedef struct interval{
 
 Int64 *getLcpTreeShulens(Args *args, Sequence *sequence);
 
-void process(Interval *interval, Int64 *shulens);
+void process(Args *args, Interval *interval, Int64 *shulens);
 
-Int64 *traverseLcpTree(Int64 *lcpTab, Int64 *sa, Sequence *seq);
+Int64 *traverseLcpTree(Args *args, Int64 *lcpTab, Int64 *sa, Sequence *seq);
 
 Interval *getInterval(Int64 lcp, Int64 lb, Int64 rb, Interval *interval);
 

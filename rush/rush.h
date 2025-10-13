@@ -6,8 +6,8 @@
 #ifndef RUSH
 #define RUSH
 
-#include "interface.h"
-#include "minimize.h"
+/* #include "interface.h" */
+/* #include "minimize.h" */
 
 void initializeProb(int max, int sbjctLen, double gc);
 int isHomologous(Int64 *sl, Int64 n, int sbjctLen);

@@ -10,13 +10,11 @@
 #include "interface.h"
 #include "eprintf.h"
 
-Args *args;
-
 Args *getArgs(int argc, char *argv[]){
   char c;
   char *optString = "hvq:w:s:";
 
-  args = (Args *)emalloc(sizeof(Args));
+  Args *args = (Args *)emalloc(sizeof(Args));
   args->w = 0;
   args->s = 0;
   args->D = DEFAULT_D;
