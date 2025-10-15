@@ -457,7 +457,7 @@ Sequence *freeSequence(Sequence *seq){
   free(seq->freqTab);
   free(seq->sbjctId);
   free(seq);
-  return seq;
+  return NULL;
 
 }
 

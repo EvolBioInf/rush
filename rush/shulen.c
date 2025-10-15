@@ -27,7 +27,7 @@ Int64 *getSuffixArray(Sequence *seq){
   sa = (Int64 *)emalloc((seq->len+1)*sizeof(Int64));
   seq->seq = (char *)erealloc(seq->seq,(seq->len+overshoot)*sizeof(char));
   textu = (char *)seq->seq;
-  ds_ssort((UChar *)textu, sa+1, seq->len);
+  ds_ssort((UChar *)textu, (int *)(sa+1), seq->len);
   return sa;
 }
 
@@ -42,7 +42,7 @@ Int64 *getLcp(Sequence *seq, Int64 *sa){
   for(i=0;i<seq->len;i++)
     occ[textu[i]]++;
   
-  return _lcp_sa2lcp_9n(textu,seq->len,sa,occ);
+  return (Int64 *)_lcp_sa2lcp_9n(textu,seq->len,(int *)sa,(int *)occ);
 }
 
 /* getShulensWithoutSentinel: return array of true shustring lengths */

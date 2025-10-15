@@ -1,3 +1,16 @@
 *.o
 *~
+bin/*
 rush/rush
+
+doc/date.txt
+doc/intro.tex
+doc/rushDoc.aux
+doc/rushDoc.dvi
+doc/rushDoc.log
+doc/rushDoc.out
+doc/version.txt
+
+intro/*.fasta
+intro/seedms
+intro/test.sh

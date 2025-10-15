@@ -1,0 +1,53 @@
+\usepackage{answers}
+\Newassociation{sol}{Solution}{ansGlobal}
+\usepackage{graphics,color,eurosym,latexsym}
+\usepackage{algorithm,algorithmic}
+\usepackage{times, verbatim}
+\newcommand{\cm}{C_{\rm m}}
+\newcommand{\ty}{\texttt}
+\newcommand{\sa}{\mathrm{sa}}
+\newcommand{\lcp}{\mathrm{lcp}}
+\newcommand{\isa}{\mathrm{isa}}
+\newcommand{\suf}{\mathrm{suf}}
+\newcommand{\shu}{\mathrm{shu}}
+\newcommand{\pop}{\mathrm{pop}}
+\newcommand{\topp}{\mathrm{top}}
+\newcommand{\push}{\mathrm{push}}
+
+\newcommand{\be}{\begin{enumerate}}
+\newcommand{\ee}{\end{enumerate}}
+\newcommand{\bi}{\begin{itemize}}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\I}{\item}
+
+
+%% TOC gap between section number and header
+\usepackage{tocloft}
+\setlength\cftsecnumwidth{2.5em}
+
+%%\usepackage[nodayofweek]{datetime}
+\usepackage[utf8]{inputenc}
+\usepackage[OT1]{fontenc}
+\usepackage{pst-all}
+\usepackage{noweb}
+%% \def\nwendcode{\endtrivlist \endgroup} %% prevent too much whitespace
+%% \let\nwdocspar=\par                    %%   at end of pages
+\def\nwendcode{\endtrivlist \endgroup \vfil\penalty10\vfilneg} %% alternative for
+\let\nwdocspar=\smallbreak                                     %%   preventing spurious whitespace
+
+\usepackage[hidelinks]{hyperref}
+\usepackage{psfrag}
+\usepackage{inconsolata}
+\usepackage[straightquotes]{newtxtt}
+\bibliographystyle{plain}
+
+
+\usepackage{thmtools}
+\newtheorem{program}{Prog.}[part]
+%%\numberwithin{program}{chapter}
+\newcommand{\p}{Prog.}
+\newcommand{\bpr}[2]{\begin{program}[\texttt{#1}]\label{#2}
+  \textcolor{white}{}
+}
+\newcommand{\epr}{\end{program}}
+\usepackage{listings}

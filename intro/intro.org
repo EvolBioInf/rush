@@ -1,0 +1,316 @@
+#+begin_export latex
+\section{Introduction}
+Recombination is traditionally thought to speed up
+adaptation~\cite{fis30:gen,mul32:som} and to eliminate deleterious
+mutations from populations~\cite{mul64:rel}. It is therefore a
+central mechanism of evolution and has been studied extensively by
+theoreticians and experimentalists alike~\cite{ham01:nar}.
+\ty{rush}, which stands for ``Recombination detection Using SHustrings'', is a program
+for determining whether or not recombination has taken place during
+the evolution of a pair of homologous DNA sequences. There are already
+many programs available for doing this~\cite{pos02:eva,bru06:sim}. The
+unique feature of \ty{rush} is that it analyzes unaligned
+genomes. This makes the program very fast.
+\section{Getting Started}
+\ty{rush} was written in C on a computer running Linux and should
+work on any standard UNIX system.
+However, please contact BH at \ty{haubold@evolbio.mpg.de} if you have
+any problems with the program. We download \ty{rush}.
+#+end_export
+#+begin_src sh <<cli.sh>>=
+  git clone https://github.com/evolbioinf/rush
+#+end_src
+#+begin_export latex
+This creates the directory \ty{rush}, and we change into it.
+#+end_export
+#+begin_src sh <<cli.sh>>=
+  cd rush
+#+end_src
+#+begin_export latex
+Make \ty{rush}.
+#+end_export
+#+begin_src sh <<cli.sh>>=
+  make
+#+end_src
+#+begin_export latex
+The directory \ty{bin} now contains the executable \ty{rush}. We list
+its options.
+#+end_export
+#+begin_src sh <<cli.sh>>=
+  ./bin/rush -h
+#+end_src
+#+begin_export latex
+\section{Tutorial}
+To follow this Tutorial, the three programs listed in
+Table~\ref{tab:dep} need to be installed on your system, in addition
+to \ty{rush} itself.
+\begin{table}
+  \caption{Dependencies of this tutorial.}\label{tab:dep}
+  \begin{center}
+  \resizebox{\textwidth}{!}{
+    \begin{tabular}{llll}
+      \hline
+      Program & Author & Source & Reference\\\hline
+      \ty{ms} & R. R. Hudson & \ty{home.uchicago.edu/rhudson1/}
+      & \cite{hud02:gen}\\
+      \ty{ms2dna} & B. Haubold \& P. Pfaffelhuber & 
+      \ty{guanine.evolbio.mpg.de/bioBox/} & ---\\
+      \ty{getSeq} & B. Haubold & \ty{github.com/evolbioinf/biobox} & ---\\
+      \hline
+    \end{tabular}
+  }
+\end{center}
+\end{table}
+
+We write a script, \ty{test.sh}, for testing \ty{rush}, where we first
+generate a pair of sequences and then apply \ty{rush} to them.
+\bpr{test.sh}{pr:test}
+#+end_export
+#+begin_src sh <<test.sh>>=
+  #<<Generate sequence pair, Pr. \ref{pr:test}>>
+  #<<Apply \ty{rush} to sequences, Pr. \ref{pr:test}>>
+#+end_src
+#+begin_export latex
+To generate a pair sequences, we generate a pair of haplotypes, which
+we then convert to DNA sequences.
+#+end_export
+#+begin_src sh <<Generate sequence pair, Pr. \ref{pr:test}>>=
+  #<<Generate pair of haplotypes, Pr. \ref{pr:test}>> |
+  #<<Convert haplotypes to DNA, Pr. \ref{pr:test}>>
+#+end_src
+#+begin_export latex
+We use the program \ty{ms}~\cite{hud02:mak} to generate one pair of
+haplotypes, on which we place an expected 1000 segregating sites
+(mutations, \ty{-t}) and an expected 100 recombination events along
+100\,kb (\ty{-r})
+#+end_export
+#+begin_src sh <<Generate pair of haplotypes, Pr. \ref{pr:test}>>=
+  ms 2 1 -s 1000 -r 100 100000
+#+end_src
+#+begin_export latex
+We use the program \ty{ms2dna} to convert our pair of haplotypes to a
+pair of DNA sequences, which we save in the file \ty{dna.fasta}.
+#+end_export
+#+begin_src sh <<Convert haplotypes to DNA, Pr. \ref{pr:test}>>=
+  ms2dna > dna.fasta
+#+end_src
+#+begin_export latex
+The program \ty{rush} takes as input one query and one subject
+sequence. So we extract the first sequence in \ty{dna.fasta} as query
+and the second as subject. The we run \ty{rush} on the query and the
+subject. At this point we don't need the three intermediate files we
+generated any more, \ty{dna.fasta}, \ty{query.fasta}, and
+\ty{sbjct.fasta}, so we remove them.
+#+end_export
+#+begin_src sh <<Apply \ty{rush} to sequences, Pr. \ref{pr:test}>>=
+  getSeq S1 dna.fasta > query.fasta
+  getSeq S2 dna.fasta > sbjct.fasta
+  rush -q query.fasta sbjct.fasta
+  #rm dna.fasta query.fasta sbjct.fasta
+#+end_src
+#+begin_export latex
+\section{Tutorial}
+\bi
+\I First install the following additional programs
+and then execute from within the directory \ty{Rush\_XXX}
+\begin{verbatim}
+sh Scripts/test.sh
+\end{verbatim}
+An example result is
+\begin{verbatim}
+Q	2.611e+00	D_r	5.426e+00	P	1.550e-08
+\end{verbatim}
+Yours will differ, because \ty{test.sh} generates random test sequences. In
+the result, $Q=2.611$ is our recombination measure, $\dr=5.426$ the
+test statistic, and $P=1.55\times 10^{-8}$ the error
+probability when rejecting $H_0: \dr=0$.
+\I Next, explore the rejection frequency as a function of the rate of recombination:
+\begin{verbatim}
+awk -f Scripts/rush.awk
+\end{verbatim}
+where \ty{rush.awk} is
+\lstinputlisting{../Rush_\version/Scripts/rush.awk} 
+Your results should look similar to
+\begin{verbatim}
+#rho	Rejection (alpha = 0.05)
+1		0
+2		0.2
+4		0.2
+8		0.4
+16		0.8
+32		0.8
+64		0.8
+128		1
+256		1
+512		1
+1024		1
+2048		0.9
+4096		1
+\end{verbatim}
+Notice that you
+can change the number of iterations in \ty{rush.awk} from 10 to some larger value, say
+100, by changing line 5 from
+\begin{verbatim}
+it = 10;
+\end{verbatim}
+to
+\begin{verbatim}
+it = 100;
+\end{verbatim}
+\ei
+\section{Listings}
+\lstset{language=c}
+\subsection{Driver Program \ty{rush.c}}
+\lstinputlisting{../Rush_\version/rush.c}
+\subsection{Variance Computation \ty{varSd.c}}
+\lstinputlisting{../Rush_\version/varSd.c}
+\section{Change Log}
+\bi
+\I Version 0.1 (July 31, 2012)
+\bi
+\I Initial version.
+\ei
+\I Version 0.2 (August 3, 2012)
+\bi
+\I Cut out all superfluous code inherited from the computation of
+$\pi_{\rm d}$; this made the program much faster.
+\ei
+\I Version 0.3 (August 25, 2012)
+\bi
+\I Implemented the option to include only shustrings of a minimum
+length (\ty{-m}).
+\ei
+\I Version 0.4 (September 10, 2012)
+\bi
+\I Implemented Peter Pfaffelhuber's new formula for $pi_{\rm d}$ to
+estimate $\pi$ if not supplied by user.
+\ei
+\I Version 0.5 (November 15, 2012)
+\bi
+\I Included the fast version of the full $pi_{\rm d}$ computation. The
+minimum shustring length now becomes important.
+\ei
+\I Version 0.6 (November 16, 2012)
+\bi
+\I Adjusted computation of minimum shustring length to accommodate
+GC-contents $\ne 1/2$.
+\ei
+\I Version 0.7 (November 17, 2012)
+\bi
+\I Exact computation of minimum shustring length; addition of \ty{-t}
+option for determining the fraction of random shustring lengths ignored.
+\ei
+\I Version 0.8 (November 19, 2012)
+\bi
+\I  Mixed estimation of minimum shustring length: if the GC-content
+deviates from 0.5 by more than \ty{-g}, explicit computation of
+minimum shustring length is used; otherwise Section 4 of the Memo
+dated August 28 2012 by Haubold, Horn, \& Pfaffelhuber is used.
+\ei
+\I Version 0.9 (November 23, 2012)
+\bi
+\I Fraction of rejected shustring lengths computed as a function of
+sequence length.
+\ei
+\I Version 0.10 (November 29, 2012)
+\bi
+\I Implemented the new $R$-statistic.
+\ei
+\I Version 0.11 (December 6, 2012)
+\bi
+\I Sliding window analysis of $R$.
+\ei
+\I Version 0.12 (December 14, 2012)
+\bi
+\I Fixed error in sliding window analysis.
+\ei
+\I Version 0.13 (???)
+\I Version 0.14 (January 28, 2013)
+\bi
+\I Implemented new hypothesis test.
+\I Included significance computation.
+\ei
+\I Version 0.15 (January 29, 2013)
+\bi
+\I Abolished $R$.
+\I Used $\ve=(1-\pi)/\pi^2$.
+\I Caught negative expected variance in \ty{varSd.significanceVar}.
+\ei
+\I Version 0.16 (February 1, 2013)
+\bi
+\I Implemented extreme value distribution for hypothesis testing.
+\ei
+\I Version 0.17 (February 4, 2013)
+\bi
+\I Set negative expected variance to 0 in \ty{varSd.significanceVar}.g
+\ei
+\I Version 0.18 (February 8, 2013)
+\bi
+\I Implemented explicit error handling \cite[p. 18f]{gal05:gnu}.
+\ei
+\I Version 0.19 (February 12, 2013)
+\bi
+\I Reverted to Gaussian null distribution.
+\I Implemented switch to test with log-transformed data.
+\ei
+\I Version 0.20 (March 8, 2013)
+\bi
+\I Removed memory leak in \ty{lcpTree.c} by replacing the increment of
+\ty{maxNumLeaves} and \ty{maxNumChildren} by \ty{++} instead of
+\ty{*2}.
+\I Removed option for log-transformation.
+\ei
+\I Version 0.21 (April 10, 2013)
+\bi
+\I Switched from \ty{recTest} to \ty{rush}.
+\ei
+\I Version 1.0 (April 12, 2013)
+\bi
+\I First version released on web site.
+\ei
+\I Version 1.1 (April 19, 2013)
+\bi
+\I Implemented Peter's simplified expressions for $E[s^2]$ and $Var[s^2]$.
+\ei
+\I Version 1.2 (May 13, 2013)
+\bi
+\I Changed nomenclature in output from \verb+V_o+ and \verb+V_e+ to
+\verb+s^2+ and \verb+X^2+.
+\ei
+\I Version 1.3 (May 17, 2013)
+\bi
+\I There was an error in the significance computation. Changed in
+\ty{varS.c}
+\begin{verbatim}
+sig = gsl_sf_erfc(x);
+\end{verbatim}
+to
+\begin{verbatim}
+sig = gsl_cdf_ugaussian_Q(x);
+\end{verbatim}
+which is equivalent to 
+\begin{verbatim}
+sig =  gsl_sf_erfc(x/sqrt(2.))/2.;
+\end{verbatim}
+\I Asked the user for a query file in response to the \ty{-v} and
+\ty{-h} options. Fixed.
+\ei
+\I Version 1.4 (August 15, 2013)
+\bi
+\I Changed the output to $Q$, $\dr$, and its significance.
+\I If $\dr<0$, don't report significance values $<0.05$. Unfortunately,
+if $\dr$ is only a bit greater than 0, \ty{rush} can report $P=0$ if
+the sequences are very short (e.g. 1 kb):
+\begin{verbatim}
+for a in $(seq 100) 
+   do generateQuerySbjct -l 1000 -s 10 -r 45
+   ./rush -q query.fasta sbjct.fasta
+done | grep 0.000
+\end{verbatim}
+I don't know how to fix
+this, so I am leaving it as it is for now.
+\ei
+\I 
+\ei
+
+#+end_export
