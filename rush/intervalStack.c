@@ -7,7 +7,6 @@
 #include "eprintf.h"
 #include "interface.h"
 #include "sequenceData.h"
-#include "deepShallow64/common.h"
 #include "lcpTree.h"
 #include "intervalStack.h"
 

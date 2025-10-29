@@ -6,7 +6,6 @@
 #ifndef SEQUENCEDATA
 #define SEQUENCEDATA
 
-#include "deepShallow64/common.h"
 #define SEQLINE 1000       /* maximal length of one line in FASTA file; hard bound */
 #define SEQBUFFER 5000000  /* define the size of the sequence buffer */
 #define DICSIZE 256

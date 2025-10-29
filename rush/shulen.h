@@ -8,13 +8,7 @@
 #ifndef SHULEN
 #define SHULEN
 
-#define ALPHA_SIZE _BW_ALPHA_SIZE
-
-Int64 *getSuffixArray(Sequence *seq);
-Int64 *getLcp(Sequence *seq, Int64 *sa);
-Int64 *getShulensWithoutSentinel(Args *args, Sequence *seq);
-Int64 *getRawShulens(Args *args, Sequence *seq, Int64 *sa, Int64 *lcp);
-Int64 *getShulensWithSentinel(Args *args, Sequence *seq);
-void printSuffixArray(Args *args, Int64 *sa, Int64 *lcp, Int64 n, UChar *seq);
+int *getSa(Sequence *seq);
+int *getLcp(Sequence *seq, int *sa);
 
 #endif

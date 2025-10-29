@@ -8,8 +8,8 @@
 
 typedef struct stack{
   Interval **intervals;
-  Int64 curSize;
-  Int64 maxSize;
+  int curSize;
+  int maxSize;
   Interval *top; 
 }Stack;
 

@@ -7,7 +7,7 @@
 #define PROB
 
 void initializeProb(int max, int sbjctLen, double gc);
-double *shulenDist(Int64 *sl, Int64 n, int min, int max);
+double *shulenDist(int *sl, int n, int min, int max);
 double *dshulen(double theta, int max, int sbjctLen, double *res);
 
 #endif

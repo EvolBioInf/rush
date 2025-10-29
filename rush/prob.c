@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_sf_gamma.h>
-#include "deepShallow64/common.h"
 #include "eprintf.h"
 
 double *pshulen(double theta, int max, int sbjctLen, double *res);
@@ -80,9 +79,9 @@ double *dshulen(double theta, int max, int sbjctLen, double *res){
   return p;
 }
 
-double *shulenDist(Int64 *sl, Int64 n, int min, int max){
+double *shulenDist(int *sl, int n, int min, int max){
   double *sd;
-  Int64 i, c;
+  int i, c;
 
   sd = (double *)emalloc(sizeof(double)*(max+1));
   /* initialize frequency array */

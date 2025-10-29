@@ -5,32 +5,32 @@
  * Date: Thu Apr  4 17:17:34 2013
  **************************************************/
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <math.h>
 #include <gsl/gsl_sf_gamma.h>
 #include <gsl/gsl_errno.h>
-#include "deepShallow64/common.h"
 #include "interface.h"
 #include "eprintf.h"
 #include "sequenceData.h"
 #include "lcpTree.h"
-/* #include "minimize.h" */
 #include "rush.h"
 #include "prob.h"
 
 void scanFile(int fd, Args *args);
-double pid(Int64 *sl, Int64 len, double gc, int min);
+double pid(int *sl, int len, double gc, int min);
 int  minShulen(int sbjctLen, double gc, double threshold);
 double absolute(double a);
 
 int main(int argc, char *argv[]){
   int i, sbjctDscr;
-  char *version;
   Args *args;
 
-  version = "1.4";
+  char *version = emalloc(strlen(VERSION) + strlen(DATE) + 3);
+  sprintf(version, "%s, %s", VERSION, DATE);
+
   setprogname2("rush");
   args = getArgs(argc, argv);
   if(args->v)
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
 }
 
 void scanFile(int sbjctDscr, Args *args){
-  Int64 *sl, i, len;
+  int *sl, i, len;
   double s, meanSl, sx, sig, ev, varSl, q, dr;
   Sequence *query, *sbjct, *seq;
   int queryDscr, r, l, winLen;

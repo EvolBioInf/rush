@@ -11,29 +11,29 @@
 #define LCPTREE
 
 typedef struct interval{
-  Int64 lcp;                        /* longest common prefix of members of this interval */
-  Int64 lb;                         /* left border */
-  Int64 rb;                         /* right border */
+  int lcp;                        /* longest common prefix of members of this interval */
+  int lb;                         /* left border */
+  int rb;                         /* right border */
   struct interval **children;     /* children of this lcp-interval */
   int numChildren;                /* number of children */
   unsigned int isQuery : 1;       /* query flag */
   unsigned int isSubject : 1;     /* subject flag */
   unsigned int isNull : 1;
   unsigned int isFree : 1;
-  Int64 numQueryLeaves;
-  Int64 maxNumChildren;
-  Int64 maxNumLeaves;
-  Int64 *queryLeaves;
-  Int64 id;
+  int numQueryLeaves;
+  int maxNumChildren;
+  int maxNumLeaves;
+  int *queryLeaves;
+  int id;
 }Interval;
 
-Int64 *getLcpTreeShulens(Args *args, Sequence *sequence);
+int *getLcpTreeShulens(Args *args, Sequence *sequence);
 
-void process(Args *args, Interval *interval, Int64 *shulens);
+void process(Args *args, Interval *interval, int *shulens);
 
-Int64 *traverseLcpTree(Args *args, Int64 *lcpTab, Int64 *sa, Sequence *seq);
+int *traverseLcpTree(Args *args, int *lcpTab, int *sa, Sequence *seq);
 
-Interval *getInterval(Int64 lcp, Int64 lb, Int64 rb, Interval *interval);
+Interval *getInterval(int lcp, int lb, int rb, Interval *interval);
 
 void addChild(Interval *parent, Interval *child);
 void checkLeaves(Interval *interval);

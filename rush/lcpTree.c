@@ -13,31 +13,27 @@
 #include "eprintf.h"
 #include "interface.h"
 #include "sequenceData.h"
-#include "deepShallow64/common.h"
-#include "deepShallow64/ds_ssort.h"
-#include "deepShallow64/bwt_aux.h"
-#include "deepShallow64/lcp_aux.h"
 #include "shulen.h"
 #include "lcpTree.h"
 #include "intervalStack.h"
 
-Int64 *suffixArray;
-Int64 queryStart, queryEnd;
-Int64 numInterval = 0;
-Int64 nextId = 0;
-Int64 maxDepth;
+int *suffixArray;
+int queryStart, queryEnd;
+int numInterval = 0;
+int nextId = 0;
+int maxDepth;
 
 /* getLcpTreeShulens: compute shulens from lcp tree traversal.
  * This is the only entry point to the functions in this file.
  */
-Int64 *getLcpTreeShulens(Args *args, Sequence *seq){
+int *getLcpTreeShulens(Args *args, Sequence *seq){
 
-  Int64 *sa, *lcpTab, *sl;
-  Int64 min, i, j;
+  int *sa, *lcpTab, *sl;
+  int min, i, j;
 
   maxDepth = args->D;
 
-  sa = getSuffixArray(seq);
+  sa = getSa(seq);
   lcpTab = getLcp(seq, sa);
   sl = traverseLcpTree(args, lcpTab, sa, seq);
 
@@ -55,7 +51,7 @@ Int64 *getLcpTreeShulens(Args *args, Sequence *seq){
   }
   if(args->d){
     for(i=0;i<seq->len;i++)
-      printf("sl[%d] = %d\n",(int)i,(int)sl[i]);
+      printf("sl[%d] = %d\n", i, sl[i]);
   }
   free(sa);
   free(lcpTab);
@@ -63,14 +59,11 @@ Int64 *getLcpTreeShulens(Args *args, Sequence *seq){
 }
 
 /* traverseLcpTree: bottom-up traversal of lcp-interval tree */
-Int64 *traverseLcpTree(Args *args, Int64 *lcpTab, Int64 *sa, Sequence *seq){
+int *traverseLcpTree(Args *args, int *lcpTab, int *sa, Sequence *seq){
 
   Interval *lastInterval, *interval;
-  Int64 i, j, lb, rightEnd, lastIsNull, *shulens;
+  int i, j, lb, rightEnd, lastIsNull, *shulens;
   Stack *treeStack, *reserveStack;
-
-  sa++;
-  lcpTab++;
 
   suffixArray = sa;
   queryStart = seq->queryStart;
@@ -78,7 +71,7 @@ Int64 *traverseLcpTree(Args *args, Int64 *lcpTab, Int64 *sa, Sequence *seq){
   rightEnd = seq->len-1;
   lcpTab[0] = 0;
   /* allocate space for shulens of forwad & reverse strand */
-  shulens = (Int64 *)emalloc((2*seq->len+1)*sizeof(Int64));
+  shulens = (int *)emalloc((2*seq->len+1)*sizeof(int));
   
   treeStack = createStack();
   reserveStack = createStack();
@@ -140,9 +133,9 @@ Int64 *traverseLcpTree(Args *args, Int64 *lcpTab, Int64 *sa, Sequence *seq){
   return shulens;
 }
 
-Interval *getInterval(Int64 lcp, Int64 lb, Int64 rb, Interval *child){
+Interval *getInterval(int lcp, int lb, int rb, Interval *child){
   Interval *interval;
-  Int64 i;
+  int i;
 
   if(++numInterval > maxDepth){
     printf("WARNING [getInterval]: program terminated with Warning Code 1;\n");
@@ -167,7 +160,7 @@ Interval *getInterval(Int64 lcp, Int64 lb, Int64 rb, Interval *child){
   }
   interval->numQueryLeaves = 0;
   interval->maxNumLeaves = 0;
-  interval->queryLeaves = (Int64 *)emalloc(interval->maxNumLeaves*sizeof(Int64));
+  interval->queryLeaves = (int *)emalloc(interval->maxNumLeaves*sizeof(int));
   interval->isNull = 0;
   interval->isFree = 0;
   return interval;
@@ -190,9 +183,9 @@ void addChild(Interval *parent, Interval *child){
  * 2) if(isQuery && isSubject) it determines the corresponding query shustring lengths (if any)
  * Some rough notes on this procedure can be found in the black notebook, p. 79, August 8, 2007.
  */
-void process(Args *args, Interval *interval, Int64 *shulens){
-  Int64 i, len;
-  Int64 ind;
+void process(Args *args, Interval *interval, int *shulens){
+  int i, len;
+  int ind;
 
   interval->isQuery = 0;
   interval->isSubject = 0;
@@ -245,7 +238,7 @@ void process(Args *args, Interval *interval, Int64 *shulens){
 /* checkLeaves: note the suffix tree leaves from query attached to interval.
  */
 void checkLeaves(Interval *interval){
-  Int64 i, j;
+  int i, j;
   
   if(interval->numChildren < 1)
     return;
@@ -256,7 +249,7 @@ void checkLeaves(Interval *interval){
     for(i=interval->children[0]->lb;i<=interval->children[0]->rb;i++){
       if(interval->numQueryLeaves >= interval->maxNumLeaves){
 	interval->maxNumLeaves++;
-	interval->queryLeaves = (Int64 *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(Int64));
+	interval->queryLeaves = (int *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(int));
       }
       interval->queryLeaves[interval->numQueryLeaves++] = suffixArray[i];
     }
@@ -267,7 +260,7 @@ void checkLeaves(Interval *interval){
 	interval->isQuery = 1;
 	if(interval->numQueryLeaves >= interval->maxNumLeaves){
 	  interval->maxNumLeaves++;
-	  interval->queryLeaves = (Int64 *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(Int64));
+	  interval->queryLeaves = (int *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(int));
 	}
 	interval->queryLeaves[interval->numQueryLeaves++] = suffixArray[i];
       }else
@@ -279,7 +272,7 @@ void checkLeaves(Interval *interval){
       for(j=interval->children[i]->lb;j<=interval->children[i]->rb;j++){
 	if(interval->numQueryLeaves >= interval->maxNumLeaves){
 	  interval->maxNumLeaves++;
-	  interval->queryLeaves = (Int64 *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(Int64));
+	  interval->queryLeaves = (int *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(int));
 	}
 	interval->queryLeaves[interval->numQueryLeaves++] = suffixArray[j];
       }
@@ -290,7 +283,7 @@ void checkLeaves(Interval *interval){
 	  interval->isQuery = 1;
 	  if(interval->numQueryLeaves >= interval->maxNumLeaves){
 	    interval->maxNumLeaves++;
-	    interval->queryLeaves = (Int64 *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(Int64));
+	    interval->queryLeaves = (int *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(int));
 	  }
 	  interval->queryLeaves[interval->numQueryLeaves++] = suffixArray[j];
 	}else
@@ -305,7 +298,7 @@ void checkLeaves(Interval *interval){
 	interval->isQuery = 1;
 	if(interval->numQueryLeaves >= interval->maxNumLeaves){
 	  interval->maxNumLeaves++;
-	  interval->queryLeaves = (Int64 *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(Int64));
+	  interval->queryLeaves = (int *)erealloc(interval->queryLeaves, interval->maxNumLeaves*sizeof(int));
 	}
 	interval->queryLeaves[interval->numQueryLeaves++] = suffixArray[i];
       }else

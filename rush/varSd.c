@@ -8,7 +8,6 @@
 #include <gsl/gsl_sf_erf.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
-#include "deepShallow64/common.h"
 #include "rush.h"
 
 double expVarVarSl(double l, double p){
