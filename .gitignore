@@ -1,3 +1,4 @@
+data/
 *.o
 *~
 bin/*
@@ -6,11 +7,21 @@ rush/rush
 doc/date.txt
 doc/intro.tex
 doc/rushDoc.aux
+doc/rushDoc.bbl
+doc/rushDoc.blg
 doc/rushDoc.dvi
 doc/rushDoc.log
 doc/rushDoc.out
+doc/rushDoc.pdf
+doc/rushDoc.ps
 doc/version.txt
-
 intro/*.fasta
+intro/q*.dat
 intro/seedms
 intro/test.sh
+intro/README.md
+intro/cli.sh
+intro/*.fna
+intro/md5sum.txt
+intro/ncbi_dataset.zip
+intro/*.dat

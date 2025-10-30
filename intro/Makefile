@@ -1,10 +1,13 @@
-all: test.sh
+all: cli.sh test.sh
 
-test.sh: intro.org
-	bash ../scripts/org2nw intro.org | notangle -Rtest.sh > test.sh
+cli.sh: intro.org
+	bash ../scripts/org2nw intro.org | notangle -Rcli > cli.sh
 
-test: test.sh
-	bash test.sh
+test.sh: intor.org
+	bash ../scriptsorg2nw intro.org | notangle -Rtest.sh > test.sh
+
+test: cli.sh
+	bash cli.sh
 
 clean:
-	rm -f test.sh
+	rm -f cli.sh

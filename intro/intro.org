@@ -10,33 +10,33 @@ for determining whether or not recombination has taken place during
 the evolution of a pair of homologous DNA sequences. There are already
 many programs available for doing this~\cite{pos02:eva,bru06:sim}. The
 unique feature of \ty{rush} is that it analyzes unaligned
-genomes. This makes the program very fast.
+genomes. This makes the program fast.
 \section{Getting Started}
 \ty{rush} was written in C on a computer running Linux and should
 work on any standard UNIX system.
 However, please contact BH at \ty{haubold@evolbio.mpg.de} if you have
 any problems with the program. We download \ty{rush}.
 #+end_export
-#+begin_src sh <<cli.sh>>=
+#+begin_src sh <<cli>>=
   git clone https://github.com/evolbioinf/rush
 #+end_src
 #+begin_export latex
 This creates the directory \ty{rush}, and we change into it.
 #+end_export
-#+begin_src sh <<cli.sh>>=
+#+begin_src sh <<cli>>=
   cd rush
 #+end_src
 #+begin_export latex
 Make \ty{rush}.
 #+end_export
-#+begin_src sh <<cli.sh>>=
+#+begin_src sh <<cli>>=
   make
 #+end_src
 #+begin_export latex
 The directory \ty{bin} now contains the executable \ty{rush}. We list
 its options.
 #+end_export
-#+begin_src sh <<cli.sh>>=
+#+begin_src sh <<cli>>=
   ./bin/rush -h
 #+end_src
 #+begin_export latex
@@ -54,116 +54,162 @@ to \ty{rush} itself.
       \ty{ms} & R. R. Hudson & \ty{home.uchicago.edu/rhudson1/}
       & \cite{hud02:gen}\\
       \ty{ms2dna} & B. Haubold \& P. Pfaffelhuber & 
-      \ty{guanine.evolbio.mpg.de/bioBox/} & ---\\
+      \ty{https://github.com/evolbioinf/ms2dna/} & ---\\
       \ty{getSeq} & B. Haubold & \ty{github.com/evolbioinf/biobox} & ---\\
       \hline
     \end{tabular}
   }
 \end{center}
 \end{table}
-
-We write a script, \ty{test.sh}, for testing \ty{rush}, where we first
-generate a pair of sequences and then apply \ty{rush} to them.
-\bpr{test.sh}{pr:test}
+We test \ty{rush}
 #+end_export
-#+begin_src sh <<test.sh>>=
-  #<<Generate sequence pair, Pr. \ref{pr:test}>>
-  #<<Apply \ty{rush} to sequences, Pr. \ref{pr:test}>>
+#+begin_src sh <<cli>>=
+  bash scripts/test.sh
 #+end_src
 #+begin_export latex
-To generate a pair sequences, we generate a pair of haplotypes, which
-we then convert to DNA sequences.
-#+end_export
-#+begin_src sh <<Generate sequence pair, Pr. \ref{pr:test}>>=
-  #<<Generate pair of haplotypes, Pr. \ref{pr:test}>> |
-  #<<Convert haplotypes to DNA, Pr. \ref{pr:test}>>
-#+end_src
-#+begin_export latex
-We use the program \ty{ms}~\cite{hud02:mak} to generate one pair of
-haplotypes, on which we place an expected 1000 segregating sites
-(mutations, \ty{-t}) and an expected 100 recombination events along
-100\,kb (\ty{-r})
-#+end_export
-#+begin_src sh <<Generate pair of haplotypes, Pr. \ref{pr:test}>>=
-  ms 2 1 -s 1000 -r 100 100000
-#+end_src
-#+begin_export latex
-We use the program \ty{ms2dna} to convert our pair of haplotypes to a
-pair of DNA sequences, which we save in the file \ty{dna.fasta}.
-#+end_export
-#+begin_src sh <<Convert haplotypes to DNA, Pr. \ref{pr:test}>>=
-  ms2dna > dna.fasta
-#+end_src
-#+begin_export latex
-The program \ty{rush} takes as input one query and one subject
-sequence. So we extract the first sequence in \ty{dna.fasta} as query
-and the second as subject. The we run \ty{rush} on the query and the
-subject. At this point we don't need the three intermediate files we
-generated any more, \ty{dna.fasta}, \ty{query.fasta}, and
-\ty{sbjct.fasta}, so we remove them.
-#+end_export
-#+begin_src sh <<Apply \ty{rush} to sequences, Pr. \ref{pr:test}>>=
-  getSeq S1 dna.fasta > query.fasta
-  getSeq S2 dna.fasta > sbjct.fasta
-  rush -q query.fasta sbjct.fasta
-  #rm dna.fasta query.fasta sbjct.fasta
-#+end_src
-#+begin_export latex
-\section{Tutorial}
-\bi
-\I First install the following additional programs
-and then execute from within the directory \ty{Rush\_XXX}
-\begin{verbatim}
-sh Scripts/test.sh
-\end{verbatim}
 An example result is
 \begin{verbatim}
-Q	2.611e+00	D_r	5.426e+00	P	1.550e-08
+Q 2.611e+00  D_r 5.426e+00  P 1.550e-08
 \end{verbatim}
 Yours will differ, because \ty{test.sh} generates random test sequences. In
 the result, $Q=2.611$ is our recombination measure, $\dr=5.426$ the
 test statistic, and $P=1.55\times 10^{-8}$ the error
 probability when rejecting $H_0: \dr=0$.
-\I Next, explore the rejection frequency as a function of the rate of recombination:
-\begin{verbatim}
-awk -f Scripts/rush.awk
-\end{verbatim}
-where \ty{rush.awk} is
-\lstinputlisting{../Rush_\version/Scripts/rush.awk} 
+
+Next, explore the rejection frequency as a function of the rate of recombination:
+#+end_export
+#+begin_src sh <<cli>>=
+awk -f scripts/rush.awk
+#+end_src
+#+begin_export latex
 Your results should look similar to
 \begin{verbatim}
 #rho	Rejection (alpha = 0.05)
-1		0
-2		0.2
-4		0.2
-8		0.4
-16		0.8
-32		0.8
-64		0.8
-128		1
-256		1
-512		1
-1024		1
-2048		0.9
-4096		1
+0               0.02
+1               0.15
+2               0.2
+4               0.33
+8               0.39
+16              0.61
+32              0.73
+64              0.85
+128             0.96
+256             0.95
+512             0.98
+1024            0.99
+2048            0.98
+4096            0.98
 \end{verbatim}
 Notice that you
-can change the number of iterations in \ty{rush.awk} from 10 to some larger value, say
-100, by changing line 5 from
+can change the number of iterations in \ty{rush.awk} from 100 to some other value, say
+200, by changing the line
 \begin{verbatim}
-it = 10;
+it = 100
 \end{verbatim}
 to
 \begin{verbatim}
-it = 100;
+it = 200
 \end{verbatim}
-\ei
+
+To analyze some real data, we download two \emph{E. coli} genomes,
+strain MG1655 with accession GCA\_032878995 and strain KO11FL with
+accession GCA\_000258025.
+#+end_export
+#+begin_src sh <<cli>>=
+  datasets download genome accession GCA_032878995 GCA_000258025
+#+end_src
+#+begin_export latex
+We unzip the genomes.
+#+end_export
+#+begin_src sh <<cli>>=
+  unzip ncbi_dataset.zip
+#+end_src
+#+begin_export latex
+We link the genome sequences to more convenient names.
+#+end_export
+#+begin_src sh <<cli>>=
+  ln -s ncbi*/data/GCA_03*/*.fna mg1655.fna
+  ln -s ncbi*/data/GCA_00*/*.fna ko11fl.fna
+#+end_src
+#+begin_export latex
+We run \ty{rush} on the two genomes and get a highly significant
+recombination signal.
+#+end_export
+#+begin_src sh <<cli>>=
+  rush -q mg1655.fna ko11fl.fna
+#+end_src
+#+begin_export latex
+\begin{verbatim}
+Q 3.352e+00  D_r 7.316e+01  P 0.000e+00
+\end{verbatim}
+#+end_export
+#+begin_export latex
+We can also run a sliding window analysis to measure the local
+variation in recombination signal in 10\,kb windows. This gives
+Figure~\ref{fig:win1}.
+\begin{figure}
+  \begin{center}
+    \includegraphics{../intro/q1.ps}
+  \end{center}
+  \caption{Sliding window analysis (10\,kb) of the recombination signal, $Q$,
+    when comparing the full genome sequences of two \emph{E. coli}
+    strains, MG1655 as query and KO11FL as subject.}\label{fig:win1}
+\end{figure}
+#+end_export
+#+begin_src sh <<cli>>=
+  rush -w 10000 -q mg1655.fna ko11fl.fna > q1.dat
+  cut -f 2,4 q1.dat |
+      plotLine -x Position -y Q
+#+end_src
+#+begin_export latex
+To get an intuition for the significance of these results, we
+repeat the analysis with a randomized version of the subject sequence
+to get Figure~\ref{fig:win2}, where the recombination signal hovers
+around $6\times 10^{-3}$.
+\begin{figure}
+  \begin{center}
+    \includegraphics{../intro/q2.ps}
+  \end{center}
+  \caption{Sliding window analysis (10\,kb) of the recombination signal, $Q$,
+    when comparing a randomized version of \emph{E. coli} KO11FL as
+    subject to query \emph{E. coli} MG1655.}\label{fig:win2}
+\end{figure}
+#+end_export
+#+begin_src sh <<cli>>=
+  randomizeSeq ko11fl.fna |
+      rush  -q mg1655.fna -w 10000 > q2.dat
+  cut -f 2,4 q2.dat |
+      plotLine -x Position -y Q
+#+end_src
+#+begin_export latex
+We can repeat the plot with the same y-axis as in the original plot in
+Figure~\ref{fig:win1} to get Figure~\ref{fig:win3}, where it is clear
+that the re is no recombination signal left.
+\begin{figure}
+  \begin{center}
+    \includegraphics{../intro/q3.ps}
+  \end{center}
+  \caption{Sliding window analysis (10\,kb) of the recombination signal, $Q$,
+    when comparing a randomized version of \emph{E. coli} KO11FL as
+    subject to query \emph{E. coli} MG1655 with same y-axis as in the
+    original analysis in Figure~\ref{fig:win1}.}\label{fig:win3}
+\end{figure}
+#+end_export
+#+begin_src sh <<cli>>=
+  cut -f 2,4 q2.dat |
+      plotLine -x Position -y Q -Y "0:14"
+#+end_src
+#+begin_export latex
 \section{Listings}
+\subsection{Test Script \ty{test.sh}}
+\lstinputlisting{../scripts/test.sh}
+\subsection{Simulation Script \ty{rush.awk}}
+\lstinputlisting{../scripts/rush.awk}
 \lstset{language=c}
 \subsection{Driver Program \ty{rush.c}}
-\lstinputlisting{../Rush_\version/rush.c}
+\lstinputlisting{../rush/rush.c}
 \subsection{Variance Computation \ty{varSd.c}}
-\lstinputlisting{../Rush_\version/varSd.c}
+\lstinputlisting{../rush/varSd.c}
 \section{Change Log}
 \bi
 \I Version 0.1 (July 31, 2012)
@@ -310,7 +356,9 @@ done | grep 0.000
 I don't know how to fix
 this, so I am leaving it as it is for now.
 \ei
-\I 
+\I Version 1.5 (October 10, 2025)
+\bi
+\I Switched to git versioning.
 \ei
-
+\ei
 #+end_export
