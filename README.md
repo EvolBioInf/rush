@@ -1,7 +1,6 @@
 # [`rush`](https://owncloud.gwdg.de/index.php/s/ipd9GfIvaEKNgx4)
 ## Author
-Bernhard Haubold, Linda Krause, Thomas Horn, Peter Pfaffelhuber,
-Beatriz Vieira Mourato
+Bernhard Haubold, Linda Krause, Thomas Horn, Beatriz Vieira Mourato, Peter Pfaffelhuber
 ## Description
 Recombination detection Using SHustrings.
 ## Compile
