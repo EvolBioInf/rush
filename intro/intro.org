@@ -8,7 +8,7 @@ theoreticians and experimentalists alike~\cite{ham01:nar}.
 \ty{rush}, which stands for ``Recombination detection Using SHustrings'', is a program
 for determining whether or not recombination has taken place during
 the evolution of a pair of homologous DNA sequences. There are already
-many programs available for doing this~\cite{pos02:eva,bru06:sim}. The
+many programs available for doing this~\cite{pos02:eva,bru06:sim,mar10:rdp}. The
 unique feature of \ty{rush} is that it analyzes unaligned
 genomes. This makes the program fast.
 \section{Getting Started}
@@ -82,7 +82,8 @@ Next, explore the rejection frequency as a function of the rate of recombination
 awk -f scripts/rush.awk
 #+end_src
 #+begin_export latex
-Your results should look similar to
+This can take up to a dozen seconds to generate the first result, so
+be patient. Your results should eventually look similar to
 \begin{verbatim}
 #rho	Rejection (alpha = 0.05)
 0               0.02
@@ -184,7 +185,7 @@ around $6\times 10^{-3}$.
 #+begin_export latex
 We can repeat the plot with the same y-axis as in the original plot in
 Figure~\ref{fig:win1} to get Figure~\ref{fig:win3}, where it is clear
-that the re is no recombination signal left.
+that there is no recombination signal left.
 \begin{figure}
   \begin{center}
     \includegraphics{../intro/q3.ps}
