@@ -13,15 +13,15 @@
 #include "shulen.h"
 
 int *getSa(Sequence *seq) {
-  unsigned char *t; // The text
-  int *sa;  // The sa
+  unsigned char *t; /* The text */
+  int *sa;  /* The sa */
   int n;
 
-  // Get text
+  /* Get text */
   t = (unsigned char *)seq->seq;
-  // Get length of text
+  /* Get length of text */
   n = seq->len;
-  // Calculate sa.
+  /* Calculate sa */
   sa = (int *)emalloc(n * sizeof(int));
   if (divsufsort(t, sa, n) != 0) {
     printf("ERROR[getSa]: suffix sorting failed.\n");
@@ -34,22 +34,24 @@ int *getSa(Sequence *seq) {
 int *getLcp(Sequence *seq, int *sa){
   char *t = seq->seq;
   int n = seq->len;
+  int i, j, k, l;
   int *isa = (int *)malloc(n * sizeof(int));
   int *lcp = (int *)malloc(n * sizeof(int));
-  for(int i = 0; i < n; i++)
+  
+  for (i = 0; i < n; i++)
     isa[sa[i]] = i;
   lcp[0] = -1;
-  int l = 0;
-  for(int i = 0; i < n; i++) {
-    int j = isa[i];
-    if(j == 0)
+  l = 0;
+  for (i = 0; i < n; i++) {
+    j = isa[i];
+    if (j == 0)
       continue;
-    int k = sa[j-1];
-    while(t[i+l] == t[k+l])
+    k = sa[j-1];
+    while (t[i+l] == t[k+l])
       l++;
     lcp[j] = l;
     l--;
-    if(l < 0)
+    if (l < 0)
       l = 0;
   }
   return lcp;

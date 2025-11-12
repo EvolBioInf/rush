@@ -20,6 +20,6 @@ interface.o: interface.h
 eprintf.o: eprintf.h
 
 test: $(EXECFILE)
-	bash ../scripts/test.sh
+	bash makeTest.sh
 clean:
 	rm -f *.o *~
