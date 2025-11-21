@@ -5,12 +5,14 @@ Bernhard Haubold, Linda Krause, Thomas Horn, Beatriz Vieira Mourato, Peter Pfaff
 Recombination detection Using SHustrings as further described [here](https://doi.org/10.1093/bioinformatics/btt550).
 ## Dependencies
 `rush` depends on the Gnu scientific library and the divsufsort
-library. On Debian-like systems these can be installed with
+library. On Debian-like systems we installed these with
 ```
 sudo apt install libgsl-dev libdivsufsort-dev
 ```
-On macOS we installed the divsufsort library as explained in its
-[repo](https://github.com/y-256/libdivsufsort).
+On macOS we used
+```
+brew install libdivsufsort gsl
+```
 ## Compile
 Compile the sources using 
 ```
