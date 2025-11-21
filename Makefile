@@ -8,7 +8,9 @@ bin/rush:
 doc: doc/rushDoc.pdf
 doc/rushDoc.pdf:
 	make -C doc
+test: rush
+	make test -C rush
 clean:
 	make clean -C rush
-	rm bin/rush
+	rm -f bin/rush
 	make clean -C doc
