@@ -45,7 +45,7 @@ int *getRestrictedDnaDictionary(int *dic);
 Sequence *freeSequence(Sequence *seq);
 Sequence *getPermanentNextSequence(FILE *fp);
 void convertToAcgt(Sequence *seq);
-void resetSequenceReader();
+void resetSequenceReader(void);
 Sequence *readFasta(int fd);
 Sequence **sequence2array(Sequence *seq);
 void prepareSeq(Sequence *sequence);

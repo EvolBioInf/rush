@@ -15,7 +15,7 @@ typedef struct stack{
 
 Interval *pop(Stack *stack);
 void push(Stack *stack, Interval *interval);
-Stack *createStack();
+Stack *createStack(void);
 int isEmpty(Stack *stack);
 void freeStack(Stack *stack);
 

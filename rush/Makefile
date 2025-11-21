@@ -2,7 +2,7 @@ CC=gcc
 VERSION = $(shell bash ../scripts/getVersion.sh)
 DATE = $(shell bash ../scripts/getDate.sh)
 
-CFLAGS= -O3 -Wall -Wshadow -pedantic -DVERSION="\"$(VERSION)\"" -DDATE="\"$(DATE)\""
+CFLAGS= -O3 -Wall -Wshadow -pedantic -DVERSION="\"$(VERSION)\"" -DDATE="\"$(DATE)\"" -I/opt/homebrew/include/ -L/opt/homebrew/lib/
 
 # The source files, object files, libraries and executable name.
 SRCFILES= rush.c interface.c eprintf.c sequenceData.c lcpTree.c shulen.c intervalStack.c stringUtil.c prob.c varSd.c

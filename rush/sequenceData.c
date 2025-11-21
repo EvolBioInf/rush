@@ -217,7 +217,7 @@ Sequence *getPermanentNextSequence(FILE *fp){
   return sequence;
 }
 
-void resetSequenceReader(){
+void resetSequenceReader(void){
   line = NULL;
   lastSequence = 0;
 }

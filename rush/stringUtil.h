@@ -42,7 +42,7 @@ void split(char *line, char *splitC, char **splitArray, int *arrayLen);
 
 void strtolower(char *s, long l);
 void reverse(char *s);
-void resetSequenceReader();
+void resetSequenceReader(void);
 void replace(char *string, char original, char replacement);
 WordNode *addWord(WordNode *p, char *w);
 WordNode *walloc(void);

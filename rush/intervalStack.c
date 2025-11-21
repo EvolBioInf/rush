@@ -10,7 +10,7 @@
 #include "lcpTree.h"
 #include "intervalStack.h"
 
-Stack *createStack(){
+Stack *createStack(void){
   Stack *stack;
 
   stack = (Stack *)emalloc(sizeof(Stack));
