@@ -2,7 +2,7 @@
 ## Authors
 Bernhard Haubold, Linda Krause, Thomas Horn, Beatriz Vieira Mourato, Peter Pfaffelhuber
 ## Description
-Recombination detection Using SHustrings.
+Recombination detection Using SHustrings as further described [here](https://doi.org/10.1093/bioinformatics/btt550).
 ## Dependencies
 `rush` depends on the Gnu scientific library and the divsufsort
 library. On Debian-like systems these can be installed with
@@ -23,6 +23,5 @@ make test
 ```
 ## Documentation
 The command `make doc` generates the manual [`doc/rushDoc.pdf`](https://owncloud.gwdg.de/index.php/s/ipd9GfIvaEKNgx4).
-## [Publication](https://doi.org/10.1093/bioinformatics/btt550)
 ## License
 GNU General Public License, https://www.gnu.org/licenses/gpl.html
