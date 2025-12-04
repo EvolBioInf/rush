@@ -18,7 +18,7 @@ BEGIN {
   minRho = 0
   maxRho = 4096
   it = 100
-  print "#rho\tRejection (alpha = 0.05)"
+  print "#rho\t<Q>\tRejection"
   # Iterate over values of \rho
   for (r = minRho; r <= maxRho; r *= 2) {
     cmd = sprintf(template, r, seq,
@@ -30,9 +30,10 @@ BEGIN {
       cmd | getline
       if ($6 <= 0.05)
 	c++
+      q += $4
       close(cmd)
     }
-    print r "\t" mean "\t" c/it
+    print r "\t" q/it "\t" c/it
     if (r == 0)
       r = 0.5
   }

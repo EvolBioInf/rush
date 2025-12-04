@@ -76,30 +76,33 @@ the result, $Q=2.611$ is our recombination measure, $\dr=5.426$ the
 test statistic, and $P=1.55\times 10^{-8}$ the error
 probability when rejecting $H_0: \dr=0$.
 
-Next, explore the rejection frequency as a function of the rate of recombination:
+Next, explore average $Q$ and the rejection frequency ($\alpha=0.05$)
+as a function of the rate of recombination in 100 pairs of 100\,kb
+sequences.
 #+end_export
 #+begin_src sh <<cli>>=
-awk -f scripts/rush.awk
+  awk -f scripts/rush.awk |
+      column -t
 #+end_src
 #+begin_export latex
 This can take up to a dozen seconds to generate the first result, so
 be patient. Your results should eventually look similar to
 \begin{verbatim}
-#rho	Rejection (alpha = 0.05)
-0               0.02
-1               0.15
-2               0.2
-4               0.33
-8               0.39
-16              0.61
-32              0.73
-64              0.85
-128             0.96
-256             0.95
-512             0.98
-1024            0.99
-2048            0.98
-4096            0.98
+#rho  <Q>        Rejection
+0     -0.364891  0
+1     0.111677   0.13
+2     1.05895    0.18
+4     2.88249    0.36
+8     5.59448    0.5
+16    9.28762    0.55
+32    13.278     0.75
+64    18.2577    0.87
+128   24.44      0.98
+256   30.6533    0.99
+512   37.4079    0.99
+1024  44.2896    0.98
+2048  51.3544    0.98
+4096  57.5693    0.95
 \end{verbatim}
 Notice that you
 can change the number of iterations in \ty{rush.awk} from 100 to some other value, say
